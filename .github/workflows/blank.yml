@@ -6,22 +6,41 @@ on:
 jobs:
   php-unit-tests:
           runs-on: ubuntu-latest
+          name: Run tests
           steps:
-              - uses: actions/checkout@v2
-              - name: Copy ENV Laravel Configuration for CI
-                run: php -r "file_exists('.env') || copy('.env.ci', '.env');"
-              - name: Install Dependencies (PHP vendors)
-                run: composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
-              - name: Generate key
-                run: php artisan key:generate
-              - name: Create DB and schemas
-                run: |
-                  mkdir -p database
-                  touch database/database.sqlite
-                  php artisan migrate
-              - name: Execute tests (Unit and Feature tests) via PHPUnit
-                run: vendor/bin/phpunit
-      
+            - uses: actions/checkout@v2
+
+            - name: Cache composer dependencies
+              uses: actions/cache@v1
+              with:
+                path: vendor
+                key: composer-${{ hashFiles('composer.lock') }}
+
+            - name: Run composer install
+              run: composer install -n --prefer-dist
+              env:
+                APP_ENV: testing
+
+            - name: Prepare Laravel Application
+              run: |
+                cp .env.example .env
+                php artisan key:generate
+                
+            - name: Run npm
+              run: npm install && npm run watch
+
+            - name: Run tests
+              run: ./vendor/bin/phpunit
+              env:
+                APP_ENV: testing
+
+            - name: Upload artifacts
+              uses: actions/upload-artifact@master
+              if: failure()
+              with:
+                name: Logs
+                path: ./storage/logs
+
   phpinsights:
         runs-on: ubuntu-latest
         name: PHP Insights checks
