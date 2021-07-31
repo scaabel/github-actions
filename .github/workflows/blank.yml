@@ -1,7 +1,8 @@
 name: App
 
 on:
-  pull_request:
+  push:
+    branches: main
 jobs:
   php-unit-tests:
           runs-on: ubuntu-latest
