@@ -1,0 +1,44 @@
+name: App
+
+on:
+  push:
+    branches: master
+jobs:
+  php-unit-tests:
+          runs-on: ubuntu-latest
+          steps:
+              - uses: actions/checkout@v1
+              - name: Copy ENV Laravel Configuration for CI
+                run: php -r "file_exists('.env') || copy('.env.ci', '.env');"
+              - name: Install Dependencies (PHP vendors)
+                run: composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
+              - name: Generate key
+                run: php artisan key:generate
+              - name: Create DB and schemas
+                run: |
+                  mkdir -p database
+                  touch database/database.sqlite
+                  php artisan migrate
+              - name: Execute tests (Unit and Feature tests) via PHPUnit
+                run: vendor/bin/phpunit
+      
+  phpinsights:
+        runs-on: ubuntu-latest
+        name: PHP Insights checks
+        steps:
+            - uses: actions/checkout@v2
+            - uses: shivammathur/setup-php@v1
+              with:
+                  php-version: 7.3
+            - run: composer install --prefer-dist --no-progress --no-suggest
+            - run: vendor/bin/phpinsights -n --ansi --format=github-action
+            
+  php-cs-fixer:
+        name: PHP-CS-Fixer
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - name: PHP-CS-Fixer
+              uses: docker://oskarstark/php-cs-fixer-ga
+
+    
