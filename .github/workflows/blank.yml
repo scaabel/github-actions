@@ -54,6 +54,7 @@ jobs:
             
   php-cs-fixer:
         runs-on: ubuntu-latest
+        name: Code Formatter
         steps:
             - uses: actions/checkout@v2
 
@@ -61,7 +62,7 @@ jobs:
               run: composer install
 
             - name: Run php-cs-fixer
-              run: ./vendor/bin/php-cs-fixer fix
+              run: ./vendor/bin/php-cs-fixer fix --allow-risky
 
             - uses: stefanzweifel/git-auto-commit-action@v4
               with:
