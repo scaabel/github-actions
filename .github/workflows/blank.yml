@@ -2,7 +2,7 @@ name: App
 
 on:
   push:
-    branches: main
+    branches: master
 jobs:
   php-unit-tests:
           runs-on: ubuntu-latest
